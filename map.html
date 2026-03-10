@@ -47,40 +47,78 @@
             maxZoom: 19
         }).addTo(map);
 
-        // Coordonnées de la Grand Place de Bruxelles
-        const grandPlaceLat = 50.8457;
-        const grandPlaceLong = 4.3488;
+        // Variable pour stocker tous les marqueurs
+        const markers = [];
 
-        // Ajouter un marqueur à la Place de la Monnaie
-        L.marker([50.8468, 4.3642]).addTo(map)
-            .bindPopup('<b>La Monnaie</b><br>Bruxelles');
+        // Fonction pour charger les fontaines à un endroit donné
+        function loadFontaines(lat, lon) {
+            const apiUrl = `https://bruxellesdata.opendatasoft.com/api/explore/v2.1/catalog/datasets/fontaines-d-eau-potable-gerees-par-la-ville-de-bruxelles/records?where=within_distance(geo_point_2d, geom'POINT(${lon} ${lat})', 1km)&limit=20`;
 
-        // Récupérer les fontaines d'eau potable via l'API OpenData
-        const apiUrl = `https://bruxellesdata.opendatasoft.com/api/explore/v2.1/catalog/datasets/fontaines-d-eau-potable-gerees-par-la-ville-de-bruxelles/records?where=within_distance(geo_point_2d, geom'POINT(${grandPlaceLong} ${grandPlaceLat})', 1km)&limit=20`;
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Ajouter des marqueurs pour chaque fontaine
+                    data.results.forEach(fontaine => {
+                        const latFontaine = fontaine.geo_point_2d.lat;
+                        const lonFontaine = fontaine.geo_point_2d.lon;
+                        const adresse = fontaine.adresse || 'Fontaine d\'eau potable';
 
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                // Ajouter des marqueurs pour chaque fontaine
-                data.results.forEach(fontaine => {
-                    const lat = fontaine.geo_point_2d.lat;
-                    const lon = fontaine.geo_point_2d.lon;
-                    const adresse = fontaine.adresse || 'Fontaine d\'eau potable';
+                        const marker = L.marker([latFontaine, lonFontaine], {
+                            icon: L.icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34],
+                                shadowSize: [41, 41]
+                            })
+                        }).addTo(map)
+                            .bindPopup(`<b>Fontaine d'eau potable</b><br>${adresse}`);
+                        
+                        markers.push(marker);
+                    });
+                })
+                .catch(error => console.error('Erreur lors du chargement des fontaines:', error));
+        }
 
-                    L.marker([lat, lon], {
-                        icon: L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            popupAnchor: [1, -34],
-                            shadowSize: [41, 41]
-                        })
-                    }).addTo(map)
-                        .bindPopup(`<b>Fontaine d'eau potable</b><br>${adresse}`);
-                });
-            })
-            .catch(error => console.error('Erreur lors du chargement des fontaines:', error));
+        // Fonction pour effacer tous les marqueurs
+        function clearMarkers() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers.length = 0;
+        }
+
+        // Event listener pour le clic sur la carte
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+
+            // Effacer tous les marqueurs existants
+            clearMarkers();
+
+            // Ajouter un marqueur rouge au point cliqué
+            const redMarker = L.marker([lat, lon], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            }).addTo(map)
+                .bindPopup(`<b>Point sélectionné</b><br>Latitude: ${lat.toFixed(4)}<br>Longitude: ${lon.toFixed(4)}`);
+
+            markers.push(redMarker);
+
+            // Recentrer la carte
+            map.setView([lat, lon], 15);
+
+            // Charger les fontaines autour de ce point
+            loadFontaines(lat, lon);
+        });
+
+        // Charger les fontaines initiales autour de la Place de la Monnaie
+        loadFontaines(50.8468, 4.3642);
     </script>
 
 </body>

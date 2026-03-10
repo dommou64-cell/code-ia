@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Carte - Découvrir Bruxelles</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+        #map {
+            height: 600px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Découvrir Bruxelles 2</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="map.html">Carte</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Carte - Place de la Monnaie</h2>
+            <div id="map"></div>
+        </section>
+    </main>
+
+    <footer> 
+        <p style="text-align: center;">© 2026 Découvrir Bruxelles</p> 
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // Initialiser la carte centrée sur la Place de la Monnaie à Bruxelles
+        const map = L.map('map').setView([50.8468, 4.3642], 15);
+
+        // Ajouter le layer OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Ajouter un marqueur à la Place de la Monnaie
+        L.marker([50.8468, 4.3642]).addTo(map)
+            .bindPopup('<b>La Monnaie</b><br>Bruxelles')
+            .openPopup();
+    </script>
+
+</body>
+</html>
